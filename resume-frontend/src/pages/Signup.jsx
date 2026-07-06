@@ -10,7 +10,7 @@ function Signup()
     const [password, setPassword] =
         useState("");
 
-    const API = import.meta.env.VITE_API_URL;
+    const API = import.meta.env.VITE_API_URL || "https://ai-resume-analyzer-production-f666.up.railway.app";
 
     const signup = async () =>
     {
@@ -21,6 +21,11 @@ function Signup()
                 {
                     username,
                     password
+                },
+                {
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
                 }
             );
 
