@@ -1,53 +1,55 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Login()
 {
-    const [username, setUsername] =
-        useState("");
-
-    const [password, setPassword] =
-        useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const API = import.meta.env.VITE_API_URL || "https://ai-resume-analyzer-production-f666.up.railway.app";
 
     const login = async () =>
     {
+        if (!username.trim() || !password.trim()) {
+            alert("Please enter both username and password.");
+            return;
+        }
+
+        setLoading(true);
+
         try
         {
-            const response =
-                await axios.post(
-                    `${API}/login`,
-                    {
-                        username,
-                        password
-                    },
-                    {
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
+            const response = await axios.post(
+                `${API}/login`,
+                { username, password },
+                {
+                    headers: {
+                        "Content-Type": "application/json"
                     }
-                );
-
-            localStorage.setItem(
-                "token",
-                response.data.token
+                }
             );
 
-            alert(
-                "Login Successful"
-            );
+            const token = response?.data?.token;
 
-            window.location.href =
-                "/upload";
+            if (!token) {
+                throw new Error("No token received from server.");
+            }
+
+            localStorage.setItem("token", token);
+            navigate("/upload", { replace: true });
         }
         catch(error)
         {
-            void error;
-            alert(
-                "Login Failed"
-            );
+            console.error("Login failed", error);
+            const message = error?.response?.data?.message || "Login failed. Please check your credentials.";
+            alert(message);
+        }
+        finally
+        {
+            setLoading(false);
         }
     };
 
@@ -80,8 +82,8 @@ function Login()
 
             <br /><br />
 
-            <button onClick={login}>
-                Login
+            <button onClick={login} disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
             </button>
 
             <br /><br />

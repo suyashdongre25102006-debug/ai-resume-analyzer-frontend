@@ -1,27 +1,30 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function Signup()
 {
-    const [username, setUsername] =
-        useState("");
-
-    const [password, setPassword] =
-        useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const API = import.meta.env.VITE_API_URL || "https://ai-resume-analyzer-production-f666.up.railway.app";
 
     const signup = async () =>
     {
+        if (!username.trim() || !password.trim()) {
+            alert("Please enter both username and password.");
+            return;
+        }
+
+        setLoading(true);
+
         try
         {
             await axios.post(
                 `${API}/signup`,
-                {
-                    username,
-                    password
-                },
+                { username, password },
                 {
                     headers: {
                         "Content-Type": "application/json"
@@ -29,19 +32,18 @@ function Signup()
                 }
             );
 
-            alert(
-                "Signup Success"
-            );
-
-            window.location.href =
-                "/login";
+            alert("Signup Success");
+            navigate("/login", { replace: true });
         }
         catch(error)
         {
-            void error;
-            alert(
-                "Signup Failed"
-            );
+            console.error("Signup failed", error);
+            const message = error?.response?.data?.message || "Signup failed. Please try again.";
+            alert(message);
+        }
+        finally
+        {
+            setLoading(false);
         }
     };
 
@@ -72,8 +74,8 @@ function Signup()
 
             <br /><br />
 
-            <button onClick={signup}>
-                Signup
+            <button onClick={signup} disabled={loading}>
+                {loading ? "Signing up..." : "Signup"}
             </button>
 
             <br /><br />
